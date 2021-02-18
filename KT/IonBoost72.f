@@ -12,7 +12,7 @@ c***5***10***15***20***25***30***35***40***45***50***55***60***65***70**
 *
 *	  La temperature est fonction du temps
 *	  et on calcule la gaine electronique dans la partie vide d'ions
-*
+*n
 *	  La fonction de distribution des electrons
 *	  est une fonction continue par morceaux (somme de maxwellienne)
 *
@@ -210,8 +210,8 @@ c***5***10***15***20***25***30***35***40***45***50***55***60***65***70**
          
         if(itmax.eq.1) goto 91
 	
-        Th=Thmax*Thot(0.)
-        Tc=Tcmax*Tcold(0.)
+        Th=Thmax*Thot(0.d0)
+        Tc=Tcmax*Tcold(0.d0)
 
         do 90 itime=1,itmax
 	
@@ -300,8 +300,8 @@ c***5***10***15***20***25***30***35***40***45***50***55***60***65***70**
 	
         break=.false. !pas de deferlement au debut
 
-	Th=Thmax*Thot(0.)
-	Tc=Tcmax*Tcold(0.)
+	Th=Thmax*Thot(0.d0)
+	Tc=Tcmax*Tcold(0.d0)
       if(Th.eq.0.d0)then
          write(*,*) 'la temperature chaude ne doit pas s''annuler'
          stop
@@ -401,6 +401,13 @@ c***5***10***15***20***25***30***35***40***45***50***55***60***65***70**
            ve1m(j)=ve(j)
         enddo     
 	
+***c***********
+****c**********
+*****c*********
+******c********
+*******c*******
+********c******
+
 	open(9,file='conservation',status='unknown')
 	write(9,'(37a)')'time',char(9), 'nti',char(9)
      *   ,'nthot', char(9), 'ntcold', char(9), 'nte'
@@ -472,10 +479,7 @@ c     *   , char(9),'ivmax',char(9),'idebut(ivmax)'
 	   nhm1=n0hot
 	   n0hot=3.d0*nhm1-3.d0*nhm2+nhm3
 	endif
-
-
-
-
+	
 *****************************
 c	if(itime.eq.(itime/nsort)*nsort) then
 	   write(*,*)
