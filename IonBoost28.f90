@@ -56,7 +56,7 @@ program Ionboost
 !*         1 - demarrage et conditions initiales
 !*         1.1 lecture des donnees
       
-            open(unit=10, status='unknown', file='boost72.par')
+            open(unit=10, status='unknown', file='IonBoost28.in')
 
             read(10,*) ncell
             read(10,*) nvide
