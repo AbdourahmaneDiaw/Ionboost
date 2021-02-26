@@ -31,11 +31,10 @@ program Ionboost
      real(real64) :: x0test (0:nmax), xttest (0:nmax), xttestold(0:nmax)
      real(real64) :: vtest (0:nmax), vtestint (0:nmax)
      real(real64) :: Etest  (0:nmax),  Etestold (0:nmax)
-     
      real(real64) :: vmoy (1:nmax), Emoy (1:nmax), dndv (1:nmax), dndE (1:nmax)
      real(real64) :: dx0  (1:nmax),  dxt (1:nmax), dxtold(1:nmax)
      real(real64) :: ni1s2 (1:nmax), E1s2 (1:nmax), niSS (0:nmax), qiSS(0:nmax), charge(0:nmax)
-      
+
      real(real64) :: a (1:nmax), b(0:nmax), c(0:nmax-1), f(0:nmax), bx(0:nmax), fx(0:nmax)
     
      logical lfini,nb_cons,En_cons,EOS,VTT,laststep,multicouche,ions_negatifs,multiphase,VTS
@@ -48,54 +47,57 @@ program Ionboost
      real(real64) :: enew, thnew
      real(real64) :: whot2old, whot1old, wcoldold, peold, grade, gradi, uphi, en_hot0, En_cold, En_cold0,nthot0
 
-    real(real64) :: xxtold, xxt, xx0, vvint, vv, qqiss, pphi, ggradnh, ggradnc, EE, ccharge, xi
-
-     real(real64) :: Ess,Enorm, Ebord0, Ebordth, vfinal, vmax, dtold, delt, ddxt
-     character*10 profil
+    real(real64)  :: xxtold, xxt, xx0, vvint, vv, qqiss, pphi, ggradnh, ggradnc, EE, ccharge, xi
+    real(real64)  :: Ess,Enorm, Ebord0, Ebordth, vfinal, vmax, dtold, delt, ddxt
+    character*10     profil
+    integer       :: fileunit
 
 !*         1 - demarrage et conditions initiales
 !*         1.1 lecture des donnees
-      
-            open(unit=10, status='unknown', file='IonBoost28.in')
+!! Write a module that takes the initial conditions, write them into variables
+!! do the check and estimates quantities we need
 
-            read(10,*) ncell
-            read(10,*) nvide
-            read(10,*) nlisse
-            read(10,*) prog
-            read(10,*) itmax
-            read(10,*) tmax
-            read(10,*) iter0
-            read(10,*) iter1
-            read(10,*) iter2
-            read(10,*) iter3
-            read(10,*) dti
-            read(10,*) n0cold
-            read(10,*) n0hot
-            read(10,*)  Thmax
-            read(10,*)  Tcmax
-            read(10,*)  lfini
-            read(10,*)  lmax
-            read(10,*)  nb_cons
-            read(10,*)  En_cons
-            read(10,*)  EOS
-            read(10,*)  T_MeV
-            read(10,*)  LSS
-            read(10,*)  nLSS
-            read(10,*)  nu
-            read(10,*)  profil
-            read(10,*)  VTS
-            read(10,*)  Ztest
-            read(10,*)  multicouche
-            read(10,*)  lay1
-            read(10,*)  lay2
-            read(10,*)  mix
-            read(10,*)  charge2
-            read(10,*)  ions_negatifs
-            read(10,*)  p_negatif
-            read(10,*)  multiphase
-            read(10,*) trise
 
-            close(10)
+            open(newunit=fileunit, file='IonBoost28.in')
+
+            read(fileunit,fmt=*) ncell
+            read(fileunit,fmt=*) nvide
+            read(fileunit,fmt=*) nlisse
+            read(fileunit,fmt=*)  prog
+            read(fileunit,fmt=*)  itmax
+            read(fileunit,fmt=*)  tmax
+            read(fileunit,fmt=*)  iter0
+            read(fileunit,fmt=*)  iter1
+            read(fileunit,fmt=*)  iter2
+            read(fileunit,fmt=*)  iter3
+            read(fileunit,fmt=*)  dti
+            read(fileunit,fmt=*)  n0cold
+            read(fileunit,fmt=*)  n0hot
+            read(fileunit,fmt=*)   Thmax
+            read(fileunit,fmt=*)   Tcmax
+            read(fileunit,fmt=*)   lfini
+            read(fileunit,fmt=*)   lmax
+            read(fileunit,fmt=*)   nb_cons
+            read(fileunit,fmt=*)   En_cons
+            read(fileunit,fmt=*)   EOS
+            read(fileunit,fmt=*)   T_MeV
+            read(fileunit,fmt=*)   LSS
+            read(fileunit,fmt=*)   nLSS
+            read(fileunit,fmt=*)   nu
+            read(fileunit,fmt=*)   profil
+            read(fileunit,fmt=*)   VTS
+            read(fileunit,fmt=*)   Ztest
+            read(fileunit,fmt=*)   multicouche
+            read(fileunit,fmt=*)   lay1
+            read(fileunit,fmt=*)   lay2
+            read(fileunit,fmt=*)   mix
+            read(fileunit,fmt=*)   charge2
+            read(fileunit,fmt=*)   ions_negatifs
+            read(fileunit,fmt=*)   p_negatif
+            read(fileunit,fmt=*)   multiphase
+            read(fileunit,fmt=*)  trise
+
+            close(fileunit)
 
 
           if(profil.ne.'sack'.and.profil.ne.'step'.and.profil.ne.'expo'.and.profil.ne.'gaus') then
@@ -233,8 +235,12 @@ program Ionboost
            qiSS(i)=niSS(i)*(dx0(i)+dx0(i+1))/2.d0
         end do
         qiSS(ncell)=niSS(ncell)*dx0(ncell)*(1.d0+prog)/2.
-          
+      !!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This can be written into a module.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !    *     1.2.3 mise en memoire de l'ordre initial des ions
+
 
         do i = 0,ncell
            idebut(i)=i
