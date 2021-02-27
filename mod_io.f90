@@ -19,7 +19,6 @@ contains
 
         read(fileunit,fmt=*)   ncell
         read(fileunit,fmt=*)   nvide
-        read(fileunit,fmt=*)   nlisse
         read(fileunit,fmt=*)   prog
         read(fileunit,fmt=*)   itmax
         read(fileunit,fmt=*)   tmax
@@ -36,23 +35,12 @@ contains
         read(fileunit,fmt=*)   lmax
         read(fileunit,fmt=*)   nb_cons
         read(fileunit,fmt=*)   En_cons
-        read(fileunit,fmt=*)   EOS
         read(fileunit,fmt=*)   T_MeV
         read(fileunit,fmt=*)   LSS
         read(fileunit,fmt=*)   nLSS
         read(fileunit,fmt=*)   nu
         read(fileunit,fmt=*)   profil
-        read(fileunit,fmt=*)   VTS
-        read(fileunit,fmt=*)   Ztest
-        read(fileunit,fmt=*)   multicouche
-        read(fileunit,fmt=*)   lay1
-        read(fileunit,fmt=*)   lay2
-        read(fileunit,fmt=*)   mix
-        read(fileunit,fmt=*)   charge2
-        read(fileunit,fmt=*)   ions_negatifs
-        read(fileunit,fmt=*)   p_negatif
-        read(fileunit,fmt=*)   multiphase
-        read(fileunit,fmt=*)   trise
+
         close(fileunit)
 
 !    Check whether everything is fine in the file
@@ -78,10 +66,6 @@ contains
           print*,    'n0cold.lt.1.d-04  therefore  nb_cons=.false.'
         endif
         
-        if((.not.lfini).and.VTT) then
-          VTT=.false.
-          print*,    'lfini=.false. therefore VTT=.false.'
-        endif
 
 
        ntotal=ncell+nvide
@@ -116,7 +100,7 @@ contains
          
          if(itmax.eq.1) goto 91
     
-         Th=Thmax*Thot_(multiphase,trise,0.d0)
+         Th=Thmax*Thot_(0.d0)
          Tc=Tcmax*Tcold_(0.d0)
 
 
@@ -128,7 +112,7 @@ contains
 
            cs2old=cs2
            time=time+dt
-           Th=Thmax*Thot_(multiphase,trise,time)
+           Th=Thmax*Thot_(time)
            Tc=Tcmax*Tcold_(time)
            cs2=(n0cold+n0hot)/(n0cold/Tc+n0hot/Th)
 
@@ -140,7 +124,6 @@ contains
      endif
 
 
-         if(ions_negatifs) length=length*sqrt(1.d0/(1.d0-p_negatif))
          if(lfini) length=lmax
 
 

@@ -19,13 +19,9 @@ program Ionboost
     
     Tnorm=T_MeV/.511d0
     e0=0.5*Tnorm*(1.+9.*Tnorm/4.+3.*Tnorm*Tnorm/4.)/(1.+3.*Tnorm/2.+3.*Tnorm*Tnorm/8.)
-      if(EOS) then
-         Tn0=2.*e0*(1.+9.*e0/2.+3.*e0*e0/2.)/(1.+6.*e0+3.*e0*e0)
-      else
-         Tn0=2.*e0
-      endif
+    Tn0=2.*e0
 
-    Th=Thmax*Thot_(multiphase,trise,0.d0)
+    Th=Thmax*Thot_(0.d0)
     Tc=Tcmax*Tcold_(0.d0)
       if(Th.eq.0.d0)then
          write(*,*) 'la temperature chaude ne doit pas s''annuler'
@@ -37,11 +33,8 @@ program Ionboost
     E(ncell)=sqrt(2.*(n0cold*Tc*exp(-phi(ncell)/Tc) +n0hot*Th*exp(-phi(ncell)/Th)))
     alpha=E(ncell)/phi(ncell)
 
-    if(ions_negatifs)then
-      mixp=-p_negatif/(1.d0-p_negatif)
-    else
-      mixp=0.d0
-    endif
+    mixp=0.d0
+
 
 
     do i = 0,ncell
@@ -49,53 +42,22 @@ program Ionboost
        v(i)=0.d0
        phi(i)=phi(ncell)*exp(alpha*(x0(i)-x0(ncell)))
        charge(i)=1.d0
-          if(multicouche)then
-             if(x0(i).gt.lay1.and.x0(i).lt.lay2) then
-                if((i/2)*2.eq.i) then
-                   qiSS(i)=qiSS(i)*2.d0*(1.d0-mix)
-                else
-                   charge(i)=charge2
-                   qiSS(i)=qiSS(i)*2.d0*mix
-                endif
-             else
-                if((i/2)*2.eq.i) then
-                   qiSS(i)=qiSS(i)*(2.d0-1.d-8)
-                else
-                   charge(i)=charge2
-                   qiSS(i)=qiSS(i)*1.d-8
-                endif
-             endif
-          endif
-
-          if(ions_negatifs)then
-             qiSS(i)=qiSS(i)*(1.d0-mixp)
-          endif
-
-    end do
-
-    do i = 0,ncell
-       x0test(i)=x0(i)
-       xttest(i)=x0(i)
-       vtest(i)=0.d0
-       itest(i)=i
     end do
 
     do i =ncell+1,ntotal
-    v(i)=0.
-    ni(i)=1.d-12
+        v(i)=0.
+        ni(i)=1.d-12
     enddo
 
 
     E(0)=0.d0
-    Etest(0)=0.d0
     gradnh(0)=0.d0
     gradnc(0)=0.d0
     time=0.d0
     dt=dti
-        if(multiphase.and.dt.gt.trise/100.d0)dt=trise/100.d0
     nhm2=n0hot
     nhm1=n0hot
-    Thm2=Thmax*Thot_(multiphase,trise,trise)
+    Thm2=Thmax
     Thm1=Thm2
     Tcm2=Tc
     Tcm1=Tc
@@ -124,8 +86,8 @@ program Ionboost
 
         Thold=Th
         Tcoold=Tc
-        if((multiphase.and.time.le.trise).or.(.not.En_cons))then
-               Th=Thmax*Thot_(multiphase,trise,time)
+        if(.not.En_cons)then
+               Th=Thmax*Thot_(time)
                Tc=Tcmax*Tcold_(time)
                idico=0
                if(Th.eq.0.d0)then
@@ -155,7 +117,7 @@ program Ionboost
 !*    2.1.3 - estimation de la modification de Th et Tc liee a la
 !*              conservation de l'energie
 
-        if(En_cons.and.(.not.multiphase.or.time.gt.trise))then
+        if(En_cons)then
            Thm3=Thm2
            Thm2=Thm1
            Thm1=Th
@@ -187,9 +149,7 @@ program Ionboost
                 ghold(i)=gradnh(i)
                 gcold(i)=gradnc(i)
              enddo
-             do i=0,ncell
-               Etestold(i)=Etest(i)
-             enddo
+
              do i=ncell+1,ntotal
                 xtold(i)=xt(i)
              enddo
@@ -255,21 +215,9 @@ program Ionboost
                     -sqrt(8.d0*peold)/dxt(ncell) *(1.d0+0.5d0*neold*phi(ncell)/peold)
 
 
-        do i=0,ncell
-               if(ions_negatifs.and.xt(i).le.0.)then
-                 f(i)=f(i)+mixp
-               endif
-        enddo
-
-
-
 !*    2.2.2 - inversion de la matrice tridiagonale
 
         call gauss(nmax,ncell,a,b,c,f,bx,fx,phi)
-
-
-!      if(iphi.ne.iter.and.itime.eq.1) goto 10
-!      if(iphi.ne.iter.and.((multiphase.and.time.le.trise).or. ((.not.nb_cons).and.(.not.En_cons)))) goto 10
 
 
 !*     2.2.3 - calcul de la densite electronique dans le plasma
@@ -279,9 +227,6 @@ program Ionboost
          ncold(i)=n0cold*exp(-phi(i)/Tc)
        ne(i)=nhot(i)+ncold(i)
        rho(i)=ni(i)-ne(i)
-           if(ions_negatifs.and.xt(i).le.0.)then
-             rho(i)= rho(i)+mixp
-           endif
     enddo
 
 !    *    2.2.4 - calcul de la pression electronique
@@ -337,7 +282,6 @@ program Ionboost
     nte=nthot+ntcold
 
     if(itime.eq.1) En_hot0=nthot*(e0/Tn0)*Th
-    if(multiphase.and.time.le.trise) En_hot0=nthot*(e0/Tn0)*Th
 
     En_cold=ntcold*0.5d0*Tc
 
@@ -426,7 +370,7 @@ program Ionboost
 !    *     2.2.10 calcul de l'energie fournie par les electrons froids et
 !    *           reajustement de Tc
 !
-          if(itime.gt.1.and.iphi.gt.1.and. (.not.multiphase.or.time.gt.trise))then
+          if(itime.gt.1.and.iphi.gt.1)then
              Wcold=Wcoldold+0.125d0*(phiold(0)+phi(0))&
                     *(ncold(0)-ncoldold(0)-vint(0)*dt&
                     *0.5d0*(gradnc(0)+gcold(0)))*(dxtold(1)+dxt(1))
@@ -462,46 +406,32 @@ program Ionboost
                 
              E(ncell)=sqrt(2.d0*pe(ncell))
 
-            do i = 1,ncell
-               if(xttest(i).ge.xt(itest(i)))then
-                 do j=itest(i),ntotal-1
-                   if(xttest(i).le.xt(j+1))then
-                     itest(i)=j
-                     goto 301
-                   endif
-                 enddo
-                 itest(i)=ntotal-1
-        301      continue
-               else
-                 do j=itest(i)-1,0,-1
-                   if(xttest(i).ge.xt(j))then
-                     itest(i)=j
-                     goto 302
-                   endif
-                 enddo
-                 itest(i)=0
-        302      continue
-                 endif
-
-        if(itest(i).ne.ncell) then
-             Etest(i)=(E(itest(i))*(xt(itest(i)+1)-xttest(i))&
-                     +E(itest(i)+1)*(xttest(i)-xt(itest(i))))/dxt(itest(i)+1)
-             else
-             Etest(i)=E(ncell)
-           endif
-        end do
+!            do i = 1,ncell
+!               if(xttest(i).ge.xt(itest(i)))then
+!                 do j=itest(i),ntotal-1
+!                   if(xttest(i).le.xt(j+1))then
+!                     itest(i)=j
+!                     goto 301
+!                   endif
+!                 enddo
+!                 itest(i)=ntotal-1
+!        301      continue
+!               else
+!                 do j=itest(i)-1,0,-1
+!                   if(xttest(i).ge.xt(j))then
+!                     itest(i)=j
+!                     goto 302
+!                   endif
+!                 enddo
+!                 itest(i)=0
+!        302      continue
+!                 endif
 
 !*     2.2.12 ajustement de la vitesse aux temps 'entiers'
     
     if(itime.gt.1) then
        do i = 1,ncell
           v(i)=vint(i)+dt*(3.d0*E(i)+Eold(i))*charge(i)/8.d0
-       end do
-    endif
-
-    if(itime.gt.1) then
-       do i = 1,ncell
-          vtest(i)=vtestint(i) +dt*(3.d0*Etest(i)+Etestold(i))*Ztest/8.d0
        end do
     endif
 
@@ -527,21 +457,17 @@ program Ionboost
             
 !*     2.2.15 calcul de l'energie totale
 
-    if(itime.eq.1.or.(multiphase.and.time.le.trise))then
+    if(itime.eq.1)then
        En_totale=En_ion+En_elec+0.5d0*ntcold*Tc+En_hot0
     endif
 
 !*    2.2.16 reajustement de Th
 !*           (remplace l'ajustement precedent)
 
-      if(En_cons.and.itime.gt.1.and.iphi.gt.1.and.(.not.multiphase.or.time.gt.trise))then
+      if(En_cons.and.itime.gt.1.and.iphi.gt.1)then
 
          enew=(En_totale-En_ion-En_elec-0.5d0*ntcold*Tc)*Tn0/nthot/Thmax
-         if(EOS) then
-         Thnew=2.*Thmax*enew*(1.+9.*enew/2.+3.*enew*enew/2.)/(1.+6.*enew+3.*enew*enew)/Tn0
-         else
          Thnew=2.*Thmax*enew/Tn0
-         endif
 
          if(iphi.ne.iter)then
             Th=(iter2*Th+Thnew)/(iter2+1)
@@ -617,21 +543,11 @@ program Ionboost
             
             dtold=dt
             dt=dti
-            if(VTT.and..not.multicouche.and.(.not.multiphase.or.time.gt.trise)) then
-                dt=dti/sqrt(ni(0))
-            endif
-            if(VTT.and.multicouche.and.(.not.multiphase.or.time.gt.trise)) then
-                    dt=dti/sqrt(5.d0*qiSS(0)/(xt(10)-xt(0)))
-            endif
-            if(multiphase.and.dt.gt.trise/100.d0.and.time.lt.trise) dt=trise/100.d0
-            if(multiphase.and.time.lt.trise.and.(time+dt).gt.trise) dt=trise-time
             if((time+dt).gt.(tmax-1.d-5)) then
                dt=tmax-time
                laststep=.true.
             endif
             time=time+dt
-
-
     
 !*         2.8 modification de la vitesse aux temps intermediaires
 !*             'demi-entiers'
@@ -640,14 +556,7 @@ program Ionboost
            do i = 1,ncell
               vint(i)=v(i)+0.5d0*dt*E(i)*charge(i)
            end do
-           do i = 1,ncell
-              vtestint(i)=vtest(i)+0.5d0*dt*Etest(i)*Ztest
-           end do
-        
-        else
-           do i = 1,ncell
-              vtestint(i)=vtestint(i)+0.5*(dtold+dt)*Etest(i)*Ztest
-           end do
+           
 
 !*            2.8.1 - construction des tableaux a,b,c, et f pour
 !*              le calcul implicite de la vitesse avec viscosite
@@ -684,14 +593,7 @@ program Ionboost
               vint(i)=-vint(i)
            endif
     end do
-    
-    do i = 1,ncell
-       xttest(i)=xttest(i)+dt*vtestint(i)
-           if(xttest(i).lt.x0(0))then
-              xttest(i)=2.d0*x0(0)-xttest(i)
-              vtestint(i)=-vtestint(i)
-           endif
-    end do
+
         
 
 !*         2.10 rearrangement des numeros des ions
@@ -759,7 +661,7 @@ program Ionboost
 101    continue
 
 
-    write(*,*) 'OK etape2'
+    write(*,*) 'OK step 2'
 
 
 
@@ -790,7 +692,7 @@ program Ionboost
 
 201    continue
 
-    write(*,*) 'OK etape3'
+    write(*,*) 'OK step 3'
 
     write(*,*)
     write(*,*) time
