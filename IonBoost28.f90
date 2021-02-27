@@ -1,254 +1,21 @@
 program Ionboost
 
      use iso_fortran_env, only: int32, real32, int64, real64
+     use mod_share
      use mod_math, only: Thot_, Tcold_, gauss
-
+     use mod_io, only: read_check_init_conditions
+     
      implicit none
 
-     integer(int32), parameter :: nmax=180000, njmax=200
-     integer(int32)  :: ntotal, nsort, iline, nstep, iline_vide, itime,ivmax
-     integer(kind=4) :: idebut(0:nmax),irang(0:nmax),itest(0:nmax), m,djout
-     integer(int32)  :: i, j, idico, iter, iphi, iidebut
-     real(real64) :: length,ni0,n0cold,n0hot,neh,nec,neold,kvide
-     real(real64) :: nti,nthot,ntcold,nte,lmax
-     real(real64) :: nthot0nhm3,nhm2,nhm1,LSS,nu,nnhot,nncold, nhm3, Tcm3, Thm3
-     real(real64) :: lDebye,lgrade,lgradi,lay1,lay2,mix,mixp
-     real(real64) :: x0 (0:nmax), xt (0:nmax), xtold(0:nmax)
-     real(real64) :: v  (0:nmax),  vint (0:nmax)
-     real(real64) :: E  (0:nmax),  Eold (0:nmax)
-     real(real64) :: phi (0:nmax),  ni (0:nmax)
-     real(real64) :: nilisse (0:nmax),  nelisse (0:nmax)
-     real(real64) :: phiold (0:nmax)
-     real(real64) :: ne (0:nmax),  rho (0:nmax)
-     real(real64) :: nhot (0:nmax),  ncold (0:nmax)
-     real(real64) :: nhotold (0:nmax),  ncoldold (0:nmax)
-     real(real64) :: gradnh (0:nmax),  gradnc (0:nmax)
-     real(real64) :: ghold (0:nmax),  gcold (0:nmax)
-     real(real64) :: phot (0:nmax),  pcold (0:nmax)
-     real(real64) :: pe (0:nmax)
-     real(real64) :: nss (0:nmax),  difth (0:nmax)
-     real(real64) :: dWhot (0:nmax), SWhot(0:nmax)
-     real(real64) :: x0test (0:nmax), xttest (0:nmax), xttestold(0:nmax)
-     real(real64) :: vtest (0:nmax), vtestint (0:nmax)
-     real(real64) :: Etest  (0:nmax),  Etestold (0:nmax)
-     real(real64) :: vmoy (1:nmax), Emoy (1:nmax), dndv (1:nmax), dndE (1:nmax)
-     real(real64) :: dx0  (1:nmax),  dxt (1:nmax), dxtold(1:nmax)
-     real(real64) :: ni1s2 (1:nmax), E1s2 (1:nmax), niSS (0:nmax), qiSS(0:nmax), charge(0:nmax)
 
-     real(real64) :: a (1:nmax), b(0:nmax), c(0:nmax-1), f(0:nmax), bx(0:nmax), fx(0:nmax)
-    
-     logical lfini,nb_cons,En_cons,EOS,VTT,laststep,multicouche,ions_negatifs,multiphase,VTS
-     integer(int32) :: ncell, nvide, nlisse,Nbe, itmax, jcoldmax
-     real(real64)   :: ve_max, prog, iter0, iter1, iter2, iter3, dti,tmax,Ztest
-     real(real64)   :: Tcmax,Thmax, T_MeV, nLSS, charge2, p_negatif, trise
-     real(real64)    :: omegadt, Th, Tc, dt, cs, cs2, time, cs2old, rgauss
-     real(real64) :: PI, e0, Tnorm, Tn0, alpha, whot
-     real(real64) :: Thm1, Thm2, Whot2, Whot1, Tcm1,Tcm2,Wcold, Tcold, Thot, Thold,Tcoold, En_ion, En_totale, En_elec
-     real(real64) :: enew, thnew
-     real(real64) :: whot2old, whot1old, wcoldold, peold, grade, gradi, uphi, en_hot0, En_cold, En_cold0,nthot0
+!*         1 - Set initial conditions and determine plasma size
 
-    real(real64)  :: xxtold, xxt, xx0, vvint, vv, qqiss, pphi, ggradnh, ggradnc, EE, ccharge, xi
-    real(real64)  :: Ess,Enorm, Ebord0, Ebordth, vfinal, vmax, dtold, delt, ddxt
-    character*10     profil
-    integer       :: fileunit
+    call read_check_init_conditions('IonBoost28.in')
 
-!*         1 - demarrage et conditions initiales
-!*         1.1 lecture des donnees
-!! Write a module that takes the initial conditions, write them into variables
-!! do the check and estimates quantities we need
+!!!! Put this in separate module file so we can change the initial potential
+!!!!!!!
 
-
-            open(newunit=fileunit, file='IonBoost28.in')
-
-            read(fileunit,fmt=*) ncell
-            read(fileunit,fmt=*) nvide
-            read(fileunit,fmt=*) nlisse
-            read(fileunit,fmt=*)  prog
-            read(fileunit,fmt=*)  itmax
-            read(fileunit,fmt=*)  tmax
-            read(fileunit,fmt=*)  iter0
-            read(fileunit,fmt=*)  iter1
-            read(fileunit,fmt=*)  iter2
-            read(fileunit,fmt=*)  iter3
-            read(fileunit,fmt=*)  dti
-            read(fileunit,fmt=*)  n0cold
-            read(fileunit,fmt=*)  n0hot
-            read(fileunit,fmt=*)   Thmax
-            read(fileunit,fmt=*)   Tcmax
-            read(fileunit,fmt=*)   lfini
-            read(fileunit,fmt=*)   lmax
-            read(fileunit,fmt=*)   nb_cons
-            read(fileunit,fmt=*)   En_cons
-            read(fileunit,fmt=*)   EOS
-            read(fileunit,fmt=*)   T_MeV
-            read(fileunit,fmt=*)   LSS
-            read(fileunit,fmt=*)   nLSS
-            read(fileunit,fmt=*)   nu
-            read(fileunit,fmt=*)   profil
-            read(fileunit,fmt=*)   VTS
-            read(fileunit,fmt=*)   Ztest
-            read(fileunit,fmt=*)   multicouche
-            read(fileunit,fmt=*)   lay1
-            read(fileunit,fmt=*)   lay2
-            read(fileunit,fmt=*)   mix
-            read(fileunit,fmt=*)   charge2
-            read(fileunit,fmt=*)   ions_negatifs
-            read(fileunit,fmt=*)   p_negatif
-            read(fileunit,fmt=*)   multiphase
-            read(fileunit,fmt=*)  trise
-
-            close(fileunit)
-
-
-          if(profil.ne.'sack'.and.profil.ne.'step'.and.profil.ne.'expo'.and.profil.ne.'gaus') then
-                write (*,*) 'What is the initial density profile'
-                stop
-          endif
-             
-          if((.not.lfini).and.(nb_cons.or.En_cons))then
-                nb_cons=.false.
-                En_cons=.false.
-                print*,    'lfini=.false. therefore En_cons=.false. and nb_cons=.false.'
-          endif
-              
-          if((.not.nb_cons).and.En_cons) then
-            nb_cons=.true.
-            print*,    'En_cons=.true.  therefore  nb_cons=.true.'
-          endif
-      
-          if(nb_cons.and.(n0cold.lt.1.d-04))then
-            nb_cons=.false.
-            print*,    'n0cold.lt.1.d-04  therefore  nb_cons=.false.'
-          endif
-          
-          if((.not.lfini).and.VTT) then
-            VTT=.false.
-            print*,    'lfini=.false. therefore VTT=.false.'
-          endif
-
-
-         ntotal=ncell+nvide
-         
-         if(ntotal.gt.nmax)then
-           print*, 'ntotal=ncell+nvide is bigger than nmax'
-           stop
-         endif
-
-
-        nstep=(tmax/dti+0.5d0)
-        nsort=1
-        if(nstep.gt.2000) nsort=nstep/2000
-        laststep=.false.
-
-        iline=1
-        if(ncell.gt.3999) iline=ncell/2000
-
-
-!*         1.2 construction du maillage
-      
-!*     1.2.1 determination de la longueur du plasma
-
-
-      if(.not.lfini) then
-         time=0.d0
-         dt=dti
-         Th=Thmax
-         Tc=Tcmax
-         cs2=(n0cold+n0hot)/(n0cold/Tc+n0hot/Th)
-         cs=sqrt(cs2)
-         if(profil.eq.'sack')length=10.d0*LSS+25.d0*cs
-         if(profil.eq.'expo')length=LSS+25.d0*cs
-         if(profil.eq.'step')length=25.d0*cs
-         
-         if(itmax.eq.1) goto 91
-    
-         Th=Thmax*Thot_(multiphase,trise,0.d0)
-         Tc=Tcmax*Tcold_(0.d0)
-
-
-        do 90 itime=1,itmax
-
-           if(time.ge.(tmax-1.d-5)) goto 91
-           if(itime.eq.itmax) goto 91
-           if((time+dt).gt.(tmax-1.d-5)) dt=tmax-time
-
-           cs2old=cs2
-
-           time=time+dt
-
-           Th=Thmax*Thot_(multiphase,trise,time)
-           Tc=Tcmax*Tcold_(time)
-           cs2=(n0cold+n0hot)/(n0cold/Tc+n0hot/Th)
-
-           cs=0.5d0*(sqrt(cs2old)+sqrt(cs2))
-           length=length+cs*dt
-
-90      continue
-91      continue
-     endif
-
-
-         if(ions_negatifs) length=length*sqrt(1.d0/(1.d0-p_negatif))
-         if(lfini) length=lmax
-
-!            *     1.2.2 maillage spatial
-
-        PI=4.D0*DATAN(1.D0)
-        rgauss=2.d0*length/sqrt(PI)
-        ni0=n0cold+n0hot
-              
-        if(prog.eq.1.d0)then
-             dx0(1)=length/ncell
-        else
-             dx0(1)=length*(1.-prog)/(1.-prog**ncell)
-        endif
-          x0(0)=-length
-          x0(1)=x0(0)+dx0(1)
-
-
-        do i = 0,1
-           niSS(i)=ni0
-           if(profil.eq.'expo'.and.x0(i).gt.-LSS) niSS(i)=ni0*exp(-(x0(i)+LSS)/LSS)
-           if(profil.eq.'sack') niSS(i)=ni0*(2.d0/pi)*DATAN(exp(-x0(i)/LSS))
-           if(profil.eq.'gaus')  niSS(i)=ni0*exp(-((x0(i)+length)/rgauss)**2)
-        end do
-
-        do i = 2,ncell
-           if(i.eq.2) then
-                dx0(2)=(1.d0+prog)*dx0(1)*niSS(0)/niSS(1)-dx0(1)
-           else
-                dx0(i)=(dx0(i-2)+dx0(i-1))*prog*niSS(i-2)/niSS(i-1)-dx0(i-1)
-           endif
-           if((profil.eq.'expo'.or.profil.eq.'sack').and.dx0(i).gt.dx0(i-1).and.dx0(i).gt.LSS/5.d0) dx0(i)=LSS/5.d0
-           if(profil.eq.'gaus' .and.dx0(i).gt.dx0(i-1).and.dx0(i).gt.lmax/5.d0) dx0(i)=lmax/5.d0
-
-           x0(i)=x0(i-1)+dx0(i)
-           niSS(i)=ni0
-           if(profil.eq.'expo'.and.x0(i).gt.-LSS) niSS(i)=ni0*exp(-(x0(i)+LSS)/LSS)
-           if(profil.eq.'sack') niSS(i)=ni0*(2.d0/pi)*DATAN(exp(-x0(i)/LSS))
-           if(profil.eq.'gaus') niSS(i)=ni0*exp(-((x0(i)+length)/rgauss)**2)
-        end do
-
-
-        qiSS(0)=niSS(0)*dx0(1)
-        do i = 1,ncell-1
-           qiSS(i)=niSS(i)*(dx0(i)+dx0(i+1))/2.d0
-        end do
-        qiSS(ncell)=niSS(ncell)*dx0(ncell)*(1.d0+prog)/2.
-      !!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! This can be written into a module.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!    *     1.2.3 mise en memoire de l'ordre initial des ions
-
-
-        do i = 0,ncell
-           idebut(i)=i
-           irang(i)=i
-        end do
-
-!*         1.3 conditions initiales et estimation du
-!*             potentiel phi initial
+!*  1.3 conditions initiales et estimation du potentiel phi initial
     
     Tnorm=T_MeV/.511d0
     e0=0.5*Tnorm*(1.+9.*Tnorm/4.+3.*Tnorm*Tnorm/4.)/(1.+3.*Tnorm/2.+3.*Tnorm*Tnorm/8.)
@@ -336,6 +103,9 @@ program Ionboost
     Whot2=0.d0
     Wcold=0.d0
     idico=0
+
+!!!!!!!!!!!
+!!!!!!!!!!!
 
 !*               2 - boucle temporelle
     do 100 itime=1,itmax
