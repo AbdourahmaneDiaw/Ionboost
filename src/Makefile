@@ -18,4 +18,4 @@ Ionboost: IonBoost28.f90 $(OBJS)
 %.o: %.mod
 
 clean:
-	$(RM) IonBoost28 *.o *.mod
+	$(RM) IonBoost28 *.o *.mod *.txt

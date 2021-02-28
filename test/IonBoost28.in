@@ -1,10 +1,10 @@
 48000 ncell
-2000 nvide
+2000  nvacuum
 0.99975    prog
-200  itmax
-100.  tmax
-12  iter0
-6   iter1
+10000  itmax
+50.d0  tmax
+20  iter0
+10   iter1
 5   iter2
 5   iter3
 0.01   dti
@@ -19,5 +19,4 @@
 1.0      T_MeV
 4.88      LSS
 20.0     nLSS
-0.0      nu
 'step'   profil

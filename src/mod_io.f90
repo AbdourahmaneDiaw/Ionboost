@@ -18,7 +18,7 @@ contains
         open(newunit=fileunit, file=filename)
 
         read(fileunit,fmt=*)   ncell
-        read(fileunit,fmt=*)   nvide
+        read(fileunit,fmt=*)   nvacuum
         read(fileunit,fmt=*)   prog
         read(fileunit,fmt=*)   itmax
         read(fileunit,fmt=*)   tmax
@@ -38,12 +38,11 @@ contains
         read(fileunit,fmt=*)   T_MeV
         read(fileunit,fmt=*)   LSS
         read(fileunit,fmt=*)   nLSS
-        read(fileunit,fmt=*)   nu
         read(fileunit,fmt=*)   profil
 
         close(fileunit)
 
-!    Check whether everything is fine in the file
+    !    Check whether everything is fine in the file
 
         if(profil.ne.'sack'.and.profil.ne.'step'.and.profil.ne.'expo'.and.profil.ne.'gaus') then
               write (*,*) 'What is the initial density profile'
@@ -68,10 +67,10 @@ contains
         
 
 
-       ntotal=ncell+nvide
+       ntotal=ncell+nvacuum
        
        if(ntotal.gt.nmax)then
-         print*, 'ntotal=ncell+nvide is bigger than nmax'
+         print*, 'ntotal=ncell+nvacuum is bigger than nmax'
          stop
        endif
 
@@ -84,7 +83,7 @@ contains
         iline=1
         if(ncell.gt.3999) iline=ncell/2000
 
-!*     1.2.1 Determine the length of the plasma
+    !   Determine the length of the plasma
 
 
       if(.not.lfini) then
@@ -119,15 +118,15 @@ contains
            cs=0.5d0*(sqrt(cs2old)+sqrt(cs2))
            length=length+cs*dt
 
-90      continue
-91      continue
-     endif
+    90      continue
+    91      continue
+        endif
 
 
          if(lfini) length=lmax
 
 
-!            *     1.2.2 maillage spatial
+    !       maillage spatial
 
         PI=4.D0*DATAN(1.D0)
         rgauss=2.d0*length/sqrt(PI)
@@ -172,8 +171,7 @@ contains
         end do
         qiSS(ncell)=niSS(ncell)*dx0(ncell)*(1.d0+prog)/2.
 
-!    *     1.2.3 mise en memoire de l'ordre initial des ions
-
+    !     Saving the initial order of the ions to deal with breaking
 
         do i = 0,ncell
            idebut(i)=i
@@ -181,5 +179,23 @@ contains
         end do
 
     end subroutine read_check_init_conditions
+
+!
+!    subroutine output_files()
+!      implicit none
+!      open(unit=9,file='conservation',status='unknown')
+!      open(unit=10,file='historique',status='unknown')
+!      open(unit=14,file='histobis',status='unknown')
+!
+!      write(9,*) '# time nti nthot ntcold nte n0hot n0cold &
+!                    En_ion Whot1 Whot2 Whot Wcold &
+!                    Th Tc En_elec En_delta vmax vfinal'
+!      write(10,*) '# time xi v(ivmax) Energy_max E(ivmax) ne(ivmax) &
+!                  ni(ivmax) ni(0) nhot(0) ncold(0) lDebye lgrade &
+!                  lgradi ivmax idebut(ivmax)'
+!
+!      write(14,*) '# time t/R0 xi R/R0 Eq42
+!
+!    end subroutine output_files
 
 end module mod_io

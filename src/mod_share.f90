@@ -34,7 +34,7 @@ module mod_share
      real(real64) :: a (1:nmax), b(0:nmax), c(0:nmax-1), f(0:nmax), bx(0:nmax), fx(0:nmax)
     
      logical lfini,nb_cons,En_cons,laststep
-     integer(int32) :: ncell, nvide,Nbe, itmax, jcoldmax
+     integer(int32) :: ncell, nvacuum,Nbe, itmax, jcoldmax
      real(real64)   :: ve_max, prog, iter0, iter1, iter2, iter3, dti,tmax
      real(real64)   :: Tcmax,Thmax, T_MeV, nLSS, charge2, p_negatif, trise
      real(real64)    :: omegadt, Th, Tc, dt, cs, cs2, time, cs2old, rgauss
@@ -47,6 +47,8 @@ module mod_share
     real(real64)  :: Ess,Enorm, Ebord0, Ebordth, vfinal, vmax, dtold, delt, ddxt
     character*10     profil
     integer       :: fileunit
+
+    real(real64) :: Eq42, RsR0, tsR0, Rs
 
 
 
