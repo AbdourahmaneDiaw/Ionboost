@@ -8,12 +8,15 @@ module mod_math
 
 contains
 
- pure function Thot_(time) result(res)
+ pure function Thot_(multiphase,trise,time) result(res)
     real(real64), intent (in):: time
+    real(real64), intent (in):: trise
     real(real64) :: res
+    logical, intent(in) :: multiphase
 
-    if(time.le.9.9) then
-        res=1.0
+
+    if(multiphase.and.time.le.trise) then
+        res=0.01d0+0.99d0*time/trise
     else
         res=1.0
      endif

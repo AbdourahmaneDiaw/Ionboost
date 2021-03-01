@@ -39,6 +39,15 @@ contains
         read(fileunit,fmt=*)   LSS
         read(fileunit,fmt=*)   nLSS
         read(fileunit,fmt=*)   profil
+        read(fileunit,fmt=*)   VTT
+     read(fileunit,fmt=*)   Ztest
+     read(fileunit,fmt=*)   multicouche
+     read(fileunit,fmt=*)   lay1
+     read(fileunit,fmt=*)   lay2
+     read(fileunit,fmt=*)   mix
+     read(fileunit,fmt=*)   charge2
+     read(fileunit,fmt=*)   multiphase
+     read(fileunit,fmt=*)   trise
 
         close(fileunit)
 
@@ -99,8 +108,8 @@ contains
          
          if(itmax.eq.1) goto 91
     
-         Th=Thmax*Thot_(0.d0)
-         Tc=Tcmax*Tcold_(0.d0)
+        Th=Thmax*Thot_(multiphase,trise,0.d0)
+        Tc=Tcmax*Tcold_(0.d0)
 
 
         do 90 itime=1,itmax
@@ -111,7 +120,7 @@ contains
 
            cs2old=cs2
            time=time+dt
-           Th=Thmax*Thot_(time)
+           Th=Thmax*Thot_(multiphase,trise,time)
            Tc=Tcmax*Tcold_(time)
            cs2=(n0cold+n0hot)/(n0cold/Tc+n0hot/Th)
 

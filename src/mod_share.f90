@@ -4,9 +4,11 @@ module mod_share
 
      implicit none
 
-     integer(int32), parameter :: nmax=180000, njmax=200
+     integer(int32), parameter :: nmax=80000
+     integer(int32) :: ncell, nvacuum,Nbe, itmax, jcoldmax
+
      integer(int32)  :: ntotal, nsort, iline, nstep, iline_vide, itime,ivmax
-     integer(kind=4) :: idebut(0:nmax),irang(0:nmax),itest(0:nmax), m,djout
+     integer(kind=4) :: idebut(0:nmax),irang(0:nmax),itest(0:nmax),m,djout
      integer(int32)  :: i, j, idico, iter, iphi, iidebut
      real(real64) :: length,ni0,n0cold,n0hot,neh,nec,neold,kvide
      real(real64) :: nti,nthot,ntcold,nte,lmax
@@ -33,22 +35,25 @@ module mod_share
 
      real(real64) :: a (1:nmax), b(0:nmax), c(0:nmax-1), f(0:nmax), bx(0:nmax), fx(0:nmax)
     
-     logical lfini,nb_cons,En_cons,laststep
-     integer(int32) :: ncell, nvacuum,Nbe, itmax, jcoldmax
+     logical lfini,nb_cons,En_cons,EOS,VTT,laststep,multicouche,multiphase
      real(real64)   :: ve_max, prog, iter0, iter1, iter2, iter3, dti,tmax
-     real(real64)   :: Tcmax,Thmax, T_MeV, nLSS, charge2, p_negatif, trise
+     real(real64)   :: Tcmax,Thmax, T_MeV, nLSS, charge2, p_negatif
      real(real64)    :: omegadt, Th, Tc, dt, cs, cs2, time, cs2old, rgauss
      real(real64) :: PI, e0, Tnorm, Tn0, alpha, whot
      real(real64) :: Thm1, Thm2, Whot2, Whot1, Tcm1,Tcm2,Wcold, Tcold, Thot, Thold,Tcoold, En_ion, En_totale, En_elec
      real(real64) :: enew, thnew
-     real(real64) :: whot2old, whot1old, wcoldold, peold, grade, gradi, uphi, en_hot0, En_cold, En_cold0,nthot0
+     real(real64) :: whot2old, whot1old, wcoldold, peold, grade, gradi, uphi, en_hot0, En_cold, En_cold0,nthot0,trise
 
     real(real64)  :: xxtold, xxt, xx0, vvint, vv, qqiss, pphi, ggradnh, ggradnc, EE, ccharge, xi
     real(real64)  :: Ess,Enorm, Ebord0, Ebordth, vfinal, vmax, dtold, delt, ddxt
     character*10     profil
     integer       :: fileunit
 
-    real(real64) :: Eq42, RsR0, tsR0, Rs
+    real(real64) :: Eq42, RsR0, tsR0, Rs,Ztest
+
+real(real64)  :: x0test (0:nmax), xttest (0:nmax), xttestold(0:nmax)
+real(real64)  :: vtest (0:nmax), vtestint (0:nmax)
+real(real64)  :: Etest  (0:nmax),  Etestold (0:nmax)
 
 
 
